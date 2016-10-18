@@ -5,12 +5,19 @@ const int C1_in1 = 2;
 const int C1_in2 = 3;
 const int C1_in3 = 4;
 const int C1_in4 = 5;
-const int X_PIN = A1;
-const int Y_PIN = A0;
+const int X_PIN = A0;
+const int Y_PIN = A1;
 const int BUTTON_PIN = 13;
 
-const int MAX_SPEED = 150;
-const int MIN_SPEED = 30;
+//const int MAX_SPEED_HZ = 150; //(H)ori(z)ontal
+//const int MAX_SPEED_VT = 255; //(V)er(t)ical
+//const int MIN_SPEED_HZ = 40;
+//const int MIN_SPEED_VT = 30;
+const int SPEED_LASER_HZ = 125;
+const int SPEED_LASER_VT = 120;
+const int SPEED_HZ = 165;
+const int SPEED_VT = 155;
+const int TH = 120;
 
 // Motor (C)ontroller two
 int C2_in1 = 8;
@@ -27,7 +34,7 @@ int newButtonState = LOW;
 
 int laserState = LOW;
 
-void turnOff(int speed, int motor)
+void turnOff(int motor)
 {
 	if(motor == 0) {
 		digitalWrite(C1_in1, LOW);
@@ -44,39 +51,59 @@ void toggleLaser() {
 		laserState = HIGH;
 		digitalWrite(C2_in1, HIGH);
 		digitalWrite(C2_in2, LOW);
+		return;
 	}
-	else {
+	if(laserState == HIGH) {
 		laserState = LOW;
 		digitalWrite(C2_in1, LOW);
 		digitalWrite(C2_in2, LOW);
 	}
 }
 
-void goForward(int speed, int motor)
+void goForward(int motor)
 {
 	if(motor == 0) {
 		digitalWrite(C1_in1, HIGH);
 		digitalWrite(C1_in2, LOW);
-		analogWrite(C1_enA, speed);
+		if(laserState == HIGH) {
+			analogWrite(C1_enA, SPEED_LASER_HZ);
+		}
+		else {
+			analogWrite(C1_enA, SPEED_HZ);
+		}
 	}
 	else {
 		digitalWrite(C1_in3, HIGH);
 		digitalWrite(C1_in4, LOW);
-		analogWrite(C1_enB, speed);
+		if(laserState == HIGH) {
+			analogWrite(C1_enB, SPEED_LASER_VT);
+		}
+		else {
+			analogWrite(C1_enB, SPEED_VT);
+		}
 	}
 }
 
-void goBackward(int speed, int motor)
-{
+void goBackward(int motor) {
 	if(motor == 0) {
 		digitalWrite(C1_in1, LOW);
 		digitalWrite(C1_in2, HIGH);
-		analogWrite(C1_enA, speed);
+		if(laserState == HIGH) {
+			analogWrite(C1_enA, SPEED_LASER_HZ);
+		}
+		else {
+			analogWrite(C1_enA, SPEED_HZ);
+		}
 	}
 	else {
 		digitalWrite(C1_in3, LOW);
 		digitalWrite(C1_in4, HIGH);
-		analogWrite(C1_enB, speed);
+		if(laserState == HIGH) {
+			analogWrite(C1_enB, SPEED_LASER_VT);
+		}
+		else {
+			analogWrite(C1_enB, SPEED_VT);
+		}
 	}
 }
 
@@ -97,47 +124,37 @@ void setup() {
 }
 
 void loop() {
-	xPosition = analogRead(X_PIN);
-	yPosition = analogRead(Y_PIN);
-	Serial.println("");
-	Serial.println("XPos: ");
-	Serial.println(xPosition);
-	Serial.println("YPos: ");
-	Serial.println(yPosition);
-	xPosition -= 512;
-	yPosition -= 512;
-	Serial.println("XPosAdj: ");
-	Serial.println(xPosition);
-	Serial.println("YPosAdj: ");
-	Serial.println(yPosition);
-
-	xSpeed = (float)xPosition/512 * MAX_SPEED;
-	ySpeed = (float)yPosition/512 * MAX_SPEED;
-
-	if(xSpeed > MIN_SPEED) {
-		goForward(xSpeed, 0);
-	}
-	if(xSpeed < -MIN_SPEED) {
-		goBackward(abs(xSpeed), 0);
-	}
-	if(abs(xSpeed) < MIN_SPEED) {
-		turnOff(0, 0);
-	}
-
-	if(ySpeed > MIN_SPEED) {
-		goForward(ySpeed, 1);
-	}
-	if(ySpeed < -MIN_SPEED) {
-		goBackward(abs(ySpeed), 1);
-	}
-	if(abs(ySpeed) < MIN_SPEED) {
-		turnOff(0, 1);
-	}
 
 	newButtonState = digitalRead(BUTTON_PIN);
 
 	if(newButtonState != prevButtonState) {
 		toggleLaser();	
 	}
+
 	prevButtonState = newButtonState;
+	xPosition = analogRead(X_PIN);
+	yPosition = analogRead(Y_PIN);
+	xPosition -= 512;
+	yPosition -= 512;
+
+	if(xPosition > TH){
+		goForward(0);
+	}
+	else if(xPosition < -TH){
+		goBackward(0);
+	}
+	else {
+		turnOff(0);
+	}
+
+	if(yPosition > TH){
+		goForward(1);
+	}
+	else if(yPosition < -TH){
+		goBackward(1);
+	}
+	else {
+		turnOff(1);
+	}
+	
 }
