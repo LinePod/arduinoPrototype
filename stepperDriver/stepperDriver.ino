@@ -53,25 +53,29 @@ void setup()
 
 void loop() {
   if(go == 1) {
-    go = 0;
     digitalWrite(readyPin, LOW);
     drive(x,y);
     digitalWrite(readyPin, HIGH); 
+    go = 0;
   }
+  delay(500);
 }
 
-void receiveEvent(int howMany) {
+void receiveEvent(int bytes) {
+  digitalWrite(readyPin, LOW);
   char c;
-
   x = Wire.read();// - 127;
   y = Wire.read();// - 127;
   go = 1;
-  //c = Wire.read();
-  //c = Wire.read();
+  c = Wire.read();
 }
 
 void drive(int x, int y) {
-  if(x>0) {
+  for(int i=0; i < 100;++i) {
+    forward(1,120,0);
+    forward(1,120,1);
+  }
+  /*if(x>0) {
     forward(x,20,0);
   }
   else if(x<0) {
@@ -84,6 +88,7 @@ void drive(int x, int y) {
   else if(y<0) {
     reverse(y,20,1);
   }
+  */
 }
 
 void setState(int state, int motor) {
