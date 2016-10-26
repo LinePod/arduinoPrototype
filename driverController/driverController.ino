@@ -1,60 +1,61 @@
 #include <Wire.h>
 
-void setup() {
-  Wire.begin();
-  pinMode(13, INPUT);
-}
+byte dataToSend[4][3];
 
-boolean flag = true;
+char curData = 0;
+
+void setup() {
+  dataToSend[0][0] = 157;
+  dataToSend[0][1] = 127;
+  dataToSend[0][2] = 1;
+
+  dataToSend[1][0] = 127;
+  dataToSend[1][1] = 157;
+  dataToSend[1][2] = 1;
+
+  dataToSend[2][0] = 97;
+  dataToSend[2][1] = 127;
+  dataToSend[2][2] = 1;
+
+  dataToSend[3][0] = 127;
+  dataToSend[3][1] = 97;
+  dataToSend[3][2] = 1;
+
+  Wire.begin();
+  Serial.begin(9600);
+  pinMode(13, INPUT);
+  delay(2000);
+}
 
 void loop() {
-  if (flag == true) {
-    // 1 //
-    transmit_data(97, 157, 0);
-    delay(500);
-    while (digitalRead(13) == LOW) {};
-
-    // 2 //
-    transmit_data(117, 137, 0);
-    delay(500);
-    while (digitalRead(13) == LOW) {};
-
-    // 3 //
-    transmit_data(137, 117, 0);
-    delay(500);
-    while (digitalRead(13) == LOW) {};
-
-    /*
-    // 4 //
-    transmit_data(150, 150, 0);
-    delay(500);
-    while (digitalRead(13) == LOW) {};
-
-    // 5 //
-    transmit_data(150, 150, 0);
-    delay(500);
-    while (digitalRead(13) == LOW) {};
-
-    // 6 //
-    transmit_data(150, 150, 0);
-    delay(500);
-    while (digitalRead(13) == LOW) {};
-
-    // 7 //
-    transmit_data(150, 150, 0);
-    delay(500);
-    while (digitalRead(13) == LOW) {};
-
-    // 8 //
-    transmit_data(150, 150, 0);
-    delay(500);
-    while (digitalRead(13) == LOW) {};
-    */
+  if(digitalRead(13) == HIGH) {
+    transmit_data(dataToSend[curData]);
+    if(curData < sizeof(dataToSend)/sizeof(dataToSend[0])-1) {
+      curData++;
+    }
+    else if (curData >= sizeof(dataToSend)/sizeof(dataToSend[0])-1) {
+      for(;;); //exit
+    }
+    delay(2000);
   }
-  flag = false;
+  delay(500);
 }
 
-void transmit_data(byte vector_x, byte vector_y, byte laser_state) {
+void transmit_data(byte arr[3]) {
+  Serial.println("arr:");
+  Serial.println(arr[0]);
+  Serial.println(arr[1]);
+  Serial.println(arr[2]);
+  Serial.println("byte:");
+  byte vector_x, vector_y, laser_state;
+  vector_x = arr[0];
+  vector_y = arr[1];
+  laser_state = arr[2];
+  Serial.println(vector_x);
+  Serial.println(vector_y);
+  Serial.println(laser_state);
+  Serial.println("");
+  
   Wire.beginTransmission(1);
   Wire.write(vector_x);
   Wire.write(vector_y);
