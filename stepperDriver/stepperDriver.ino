@@ -54,7 +54,7 @@ void setup()
   digitalWrite(readyPin, HIGH); 
   Wire.begin(1);
   Wire.onReceive(receiveEvent);
-  //Serial.begin(9600);
+  Serial.begin(9600);
 }
 
 void loop() {
@@ -68,15 +68,29 @@ void loop() {
 }
 
 void receiveEvent(int bytes) {
+  Serial.println("Received bytes:");
+  Serial.println(bytes);
   digitalWrite(readyPin, LOW);
-  char c;
-  x = Wire.read() - 127;
-  y = Wire.read() - 127;
-  //Serial.println("Received:");
-  //Serial.println("x: ");
-  //Serial.println(x);
-  //Serial.println("y: ");
-  //Serial.println(y);
+  byte c;
+  byte x_b[2];
+  byte y_b[2];
+   
+  x_b[0] = Wire.read();
+  x_b[1] = Wire.read();
+  y_b[0] = Wire.read();
+  y_b[1] = Wire.read();
+  c = Wire.read();
+
+  int x = *(signed char *)(&x_b[1]);
+  x *= 1 << 8;
+  x |= x_b[0];
+  Serial.println(x);
+
+  int y = *(signed char *)(&y_b[1]);
+  y *= 1 << 8;
+  y |= y_b[0];
+  Serial.println(y);
+
   go = 1;
   c = Wire.read();
 }
