@@ -95,63 +95,58 @@ void receiveEvent(int bytes) {
   c = Wire.read();
 }
 
-void drive(int stepper_one, int stepper_two) {
+void drive(int x, int y) {
   //Serial.println("drive start");
   //Serial.println(stepper_one);
   //Serial.println(stepper_two);
+  
+  if ((x == 0) && (y == 0)) return;
 
-  int num = abs(stepper_one) + abs(stepper_two);
-  int stepperOrder[num];
-  //int* stepperOrder = malloc(sizeof(int) * num);
+  int instructions[4] = {HZ_FW, HZ_RV, VT_FW, VT_RV};
+  int index_one, index_two;
+  int num = abs(x) + abs(y);
+  int order[num];
 
-  int changed = 0;
-
-  if (abs(stepper_two) > abs(stepper_one)) {
-    int tmp = stepper_one;
-    stepper_one = stepper_two;
-    stepper_two = tmp;
-    changed = 1;
+  if (abs(x) < abs(y)) {
+    int tmp = x;
+    x = y;
+    y = tmp;
+    index_one = 2;
+    index_two = 0;
+  }
+  else {
+    index_one = 0;
+    index_two = 2;
   }
 
+  if (x > 0) index_one++;
+  if (y > 0) index_two++;
+
+  order[0] = instructions[index_one];
+  float y_per_x = (float)abs(y) / (float)abs(x);
+  int counter_index = 1;
+  int counter_y = 0;
   int i = 0;
-  for (i = 0; i < num; i++) {
-    if (changed == 0) {
-      if (stepper_one >= 0) stepperOrder[i] = HZ_RV;
-      else if(stepper_one < 0) stepperOrder[i] = HZ_FW;
+
+  for (i = 1; i <= abs(x); i++) {
+    float y_position = (float)i * y_per_x;
+    if (y_position - (float)counter_y >= 0.5) {
+      order[counter_index] = instructions[index_two];
+      counter_y++;
+      counter_index++;
+      order[counter_index] = instructions[index_one];
     }
-    else if (changed = 1) {
-      if (stepper_one >= 0) stepperOrder[i] = VT_RV;
-      else if(stepper_one < 0) stepperOrder[i] = VT_FW;
+    else {
+      order[counter_index] = instructions[index_one];
     }
-  }
-
-  int number_of_gaps = abs(stepper_two) + 1;
-  int number_of_values = abs(stepper_one);
-  float values_per_gap = (float)number_of_values / (float)number_of_gaps;
-  int values_left = number_of_values % number_of_gaps;
-
-  int counter = 0;
-  i = values_per_gap;
-
-  for (i; i < num; i += (values_per_gap + 1)) {
-    if (counter < values_left) i++;
-
-    if (changed == 0) {
-      if (stepper_two >= 0) stepperOrder[i] = VT_RV;
-      else if(stepper_two < 0) stepperOrder[i] = VT_FW;
-    }
-    else if (changed == 1) {
-      if (stepper_one >= 0) stepperOrder[i] = HZ_RV;
-      else if(stepper_two < 0) stepperOrder[i] = HZ_FW;
-    }
-
-    counter++;
-    if (counter == abs(stepper_two)) break;
+    counter_index++;
   }
 
 
+
+  // drive
   for(int i=0; i < num;++i) {
-    switch(stepperOrder[i]) {
+    switch(order[i]) {
       case HZ_FW:
         forward(1,120,0);
         break;
@@ -166,7 +161,7 @@ void drive(int stepper_one, int stepper_two) {
         break;
     }
   }
-  free(stepperOrder);
+  free(order);
   //Serial.println("drive end");
 }
 
