@@ -92,6 +92,10 @@ void readAndTransmit(String inputString) {
   Serial.println("");
   
   Wire.beginTransmission(1);
-  Wire.write(*data);
+  Wire.write(data[0]);
+  Wire.write(data[1]);
+  Wire.write(data[2]);
+  Wire.write(data[3]);
+  Wire.write(data[4]);
   Wire.endTransmission();
 }

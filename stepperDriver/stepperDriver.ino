@@ -55,6 +55,7 @@ void setup()
   Wire.begin(1);
   Wire.onReceive(receiveEvent);
   Serial.begin(9600);
+  Serial.println("Alive");
 }
 
 void loop() {
@@ -75,20 +76,21 @@ void receiveEvent(int bytes) {
   byte x_b[2];
   byte y_b[2];
    
-  x_b[0] = Wire.read();
+  x_b[0] = Wire.read(); // least significant byte first
   x_b[1] = Wire.read();
-  y_b[0] = Wire.read();
+  Serial.println(x_b[0],BIN);
+  Serial.println(x_b[1],BIN);
+  y_b[0] = Wire.read(); // least significant byte first
   y_b[1] = Wire.read();
+  Serial.println(y_b[0],BIN);
+  Serial.println(y_b[1],BIN);
   c = Wire.read();
+  Serial.println(c,BIN);
+  
+  x = x_b[1] | x_b[0] << 8;
+  y = y_b[1] | y_b[0] << 8;
 
-  int x = *(signed char *)(&x_b[1]);
-  x *= 1 << 8;
-  x |= x_b[0];
   Serial.println(x);
-
-  int y = *(signed char *)(&y_b[1]);
-  y *= 1 << 8;
-  y |= y_b[0];
   Serial.println(y);
 
   go = 1;
