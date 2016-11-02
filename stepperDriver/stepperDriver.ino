@@ -4,18 +4,15 @@
 // Output: Done
 
 // Stepper Horizontal
-const int ENA_HZ = 7;
+const int MOTORS_EN = 2;
 const int IN1_HZ = 6;
 const int IN2_HZ = 5;
-const int ENB_HZ = 8;
 const int IN4_HZ = 9;
 const int IN3_HZ = 10;
 
 // Stepper Vertical
-const int ENA_VT = 2;
 const int IN1_VT = 3;
 const int IN2_VT = 4;
-const int ENB_VT = 13;
 const int IN4_VT = 12;
 const int IN3_VT = 11;
 
@@ -24,53 +21,50 @@ const int HZ_RV = 1;
 const int VT_FW = 2;
 const int VT_RV = 3;
 
-const int readyPin = 1;
+const int readyPin = 8;
+const int laserPin = 7;
 
 int stepperState[2] = {0,0};
 int x;
 int y;
+byte l = 0;
 int go = 0;
 
 void setup()
 {
-  pinMode(ENA_HZ,OUTPUT);
   pinMode(IN1_HZ,OUTPUT);
   pinMode(IN2_HZ,OUTPUT);
-  pinMode(ENB_HZ,OUTPUT);
   pinMode(IN3_HZ,OUTPUT);
   pinMode(IN4_HZ,OUTPUT);
-  pinMode(ENA_VT,OUTPUT);
   pinMode(IN1_VT,OUTPUT);
   pinMode(IN2_VT,OUTPUT);
-  pinMode(ENB_VT,OUTPUT);
   pinMode(IN3_VT,OUTPUT);
   pinMode(IN4_VT,OUTPUT);
+  pinMode(MOTORS_EN, OUTPUT);
   pinMode(readyPin, OUTPUT);
-  digitalWrite(ENA_HZ, HIGH);
-  digitalWrite(ENB_HZ, HIGH);
-  digitalWrite(ENA_VT, HIGH);
-  digitalWrite(ENB_VT, HIGH);
+  pinMode(laserPin, OUTPUT);
 
   digitalWrite(readyPin, HIGH); 
   Wire.begin(1);
   Wire.onReceive(receiveEvent);
-  Serial.begin(9600);
-  Serial.println("Alive");
+  //Serial.begin(9600);
+  //Serial.println("Alive");
 }
 
 void loop() {
   if(go == 1) {
     digitalWrite(readyPin, LOW);
-    drive(x,y);
+    drive(x,y,l);
+    delay(2000);
     digitalWrite(readyPin, HIGH); 
     go = 0;
   }
-  delay(500);
+  delay(100);
 }
 
 void receiveEvent(int bytes) {
-  Serial.println("Received bytes:");
-  Serial.println(bytes);
+  //Serial.println("Received bytes:");
+  //Serial.println(bytes);
   digitalWrite(readyPin, LOW);
   byte c;
   byte x_b[2];
@@ -78,31 +72,37 @@ void receiveEvent(int bytes) {
    
   x_b[0] = Wire.read(); // least significant byte first
   x_b[1] = Wire.read();
-  Serial.println(x_b[0],BIN);
-  Serial.println(x_b[1],BIN);
+  //Serial.println(x_b[0],BIN);
+  //Serial.println(x_b[1],BIN);
   y_b[0] = Wire.read(); // least significant byte first
   y_b[1] = Wire.read();
-  Serial.println(y_b[0],BIN);
-  Serial.println(y_b[1],BIN);
-  c = Wire.read();
-  Serial.println(c,BIN);
+  //Serial.println(y_b[0],BIN);
+  //Serial.println(y_b[1],BIN);
+  l = Wire.read();
+  //Serial.println(c,BIN);
   
   x = x_b[1] | x_b[0] << 8;
   y = y_b[1] | y_b[0] << 8;
 
-  Serial.println(x);
-  Serial.println(y);
+  //Serial.println(x);
+  //Serial.println(y);
 
   go = 1;
-  c = Wire.read();
 }
 
-void drive(int x, int y) {
-  //Serial.println("drive start");
-  //Serial.println(stepper_one);
-  //Serial.println(stepper_two);
-  
+void drive(int x, int y, byte laser) {
+
   if ((x == 0) && (y == 0)) return;
+
+  digitalWrite(MOTORS_EN, HIGH);
+  ////Serial.println("drive start");
+  ////Serial.println(stepper_one);
+  ////Serial.println(stepper_two);
+  int speed = 10;
+  if(laser == 1) {
+    digitalWrite(laserPin, HIGH); 
+    speed = 120;
+  }
 
   int instructions[4] = {HZ_FW, HZ_RV, VT_FW, VT_RV};
   int index_one, index_two;
@@ -150,21 +150,23 @@ void drive(int x, int y) {
   for(int i=0; i < num;++i) {
     switch(order[i]) {
       case HZ_FW:
-        forward(1,120,0);
+        forward(1,speed,0);
         break;
       case HZ_RV:
-        reverse(1,120,0);
+        reverse(1,speed,0);
         break;
       case VT_FW:
-        forward(1,120,1);
+        forward(1,speed,1);
         break;
       case VT_RV:
-        reverse(1,120,1);
+        reverse(1,speed,1);
         break;
     }
   }
-  free(order);
-  //Serial.println("drive end");
+  //free(order);
+  digitalWrite(MOTORS_EN, LOW);
+  digitalWrite(laserPin, LOW); 
+  ////Serial.println("drive end");
 }
 
 void setState(int state, int motor) {
@@ -238,8 +240,8 @@ void setState(int state, int motor) {
 }
 
 void reverse(int i, int j, int motor) {
-  //Serial.println("reverse, steps: ");
-  //Serial.println(i);
+  ////Serial.println("reverse, steps: ");
+  ////Serial.println(i);
 
   while (1)   {
     switch(stepperState[motor]) {
@@ -264,8 +266,8 @@ void reverse(int i, int j, int motor) {
 
 void forward(int i, int j, int motor) {
 
-  //Serial.println("forward, steps: ");
-  //Serial.println(i);
+  ////Serial.println("forward, steps: ");
+  ////Serial.println(i);
 
   while (1)   {
     switch(stepperState[motor]) {

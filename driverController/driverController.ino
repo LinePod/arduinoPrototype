@@ -27,44 +27,36 @@ void loop() {
 
     inputString = "";
   }
-  delay(500);
 
-/*  if(digitalRead(13) == HIGH) {
-    transmit_data(dataToSend[curData]);
-    if(curData < sizeof(dataToSend)/sizeof(dataToSend[0])-1) {
-      curData++;
-    }
-    else if (curData >= sizeof(dataToSend)/sizeof(dataToSend[0])-1) {
-      for(;;); //exit
-    }
-    delay(2000);
+  delay(500);
+  if(digitalRead(13) == HIGH) {
+    delay(500);
+    Serial.println("1");
   }
   delay(500);
-
-  */
 }
 
 void readAndTransmit(String inputString) {
 
   int str_len = inputString.length(); 
-  Serial.println("Length of String:");
-  Serial.println(str_len);
+  //Serial.println("Length of String:");
+  //Serial.println(str_len);
   int comma_position1 = inputString.indexOf(',');
   int comma_position2 = inputString.lastIndexOf(',');
-  Serial.println("Comma position");
-  Serial.println(comma_position1);
+  //Serial.println("Comma position");
+  //Serial.println(comma_position1);
 
   String x_str, y_str, laser_str;
   y_str = inputString.substring(comma_position1+1, comma_position2);
   x_str = inputString.substring(0, comma_position1);
   laser_str= inputString.substring(comma_position2+1);
 
-  Serial.println("xstr:");
-  Serial.println(x_str);
-  Serial.println("ystr:");
-  Serial.println(y_str);
-  Serial.println("laser_str:");
-  Serial.println(laser_str);
+  //Serial.println("xstr:");
+  //Serial.println(x_str);
+  //Serial.println("ystr:");
+  //Serial.println(y_str);
+  //Serial.println("laser_str:");
+  //Serial.println(laser_str);
 
   int x,y,l;
   x = x_str.toInt();
@@ -79,17 +71,17 @@ void readAndTransmit(String inputString) {
   data[2] = (y >> 8) & 0xFF;
   data[3] = y & 0xFF;
   data[4] = l & 0xFF;
-  Serial.println("Binary:");
-  Serial.print(data[0],BIN);
-  Serial.println("");
-  Serial.print(data[1],BIN);
-  Serial.println("");
-  Serial.print(data[2],BIN);
-  Serial.println("");
-  Serial.print(data[3],BIN);
-  Serial.println("");
-  Serial.print(data[4],BIN);
-  Serial.println("");
+  //Serial.println("Binary:");
+  //Serial.print(data[0],BIN);
+  //Serial.println("");
+  //Serial.print(data[1],BIN);
+  //Serial.println("");
+  //Serial.print(data[2],BIN);
+  //Serial.println("");
+  //Serial.print(data[3],BIN);
+  //Serial.println("");
+  //Serial.print(data[4],BIN);
+  //Serial.println("");
   
   Wire.beginTransmission(1);
   Wire.write(data[0]);
